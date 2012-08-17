@@ -1,15 +1,15 @@
 <?php
 /*
-Plugin Name: Screts-lated Posts 0.5
+Plugin Name: Screts-lated Posts 0.6
 Plugin URI: http://github.com/tollmanz/screts-lated-posts
 Description: Scalable, retina ready, and responsive related posts widget. It's all the buzz.
 Author: Zack Tollman
-Version: 0.5
+Version: 0.6
 Author URI: http://github.com/tollmanz
 */
 
 // Define contants
-define( 'SCRETS_VERSION', '0.5' );
+define( 'SCRETS_VERSION', '0.6' );
 define( 'SCRETS_ROOT', dirname(__FILE__) );
 define( 'SCRETS_FILE_PATH', SCRETS_ROOT . '/' . basename(__FILE__) );
 define( 'SCRETS_URL', plugins_url( '/', __FILE__ ) );
