@@ -1,0 +1,3 @@
+*Welcome! This is not a plugin*
+
+This repository is being utilized as an accompaniment to Zack Tollman's WordCamp Portland 2012 talk, "_doing_it_wrong: Improving Your Development Skills Through Examining Bad Practices". The purpose of this repository is to show differences between problematic WordPress code and good WordPress code. Each commit fixes a general type of problem. For instance, a commit may address security issues. This method allows a reader to easily see the difference between insecure and secure code. Each commit has a very detail commit message explain the changes. The goal is for this to be a learning tool for WordPress developers.
