@@ -121,7 +121,7 @@ class scretsRelatedPosts extends WP_Widget {
      */
     public function generate_related_posts( $number ) {
         // Set the number default if not set
-        $number = empty( $number ) || absint( $number ) > 0 ? 3 : absint( $number );
+        $number = empty( $number ) || absint( $number ) < 1 ? 3 : absint( $number );
 
         // Generate a cache key for the post
         $cache_key = 'screts-posts-' . get_the_ID() . $number;
@@ -133,32 +133,46 @@ class scretsRelatedPosts extends WP_Widget {
         if ( false === $related_posts_html ) {
             // Get the post's categories and tags
             $categories = get_the_category();
-            $category_ids = wp_list_pluck( $categories, 'term_id' );
+            $category_ids = false !== $categories && ! is_wp_error( $categories ) ? wp_list_pluck( $categories, 'term_id' ) : false;
 
             $tags = get_the_tags();
-            $tag_ids = wp_list_pluck( $tags, 'term_id' );
+            $tag_ids = false !== $tags && ! is_wp_error( $tags ) ? wp_list_pluck( $tags, 'term_id' ) : false;
 
             // Execute related posts query
-            global $screts_related_posts;
-            $screts_related_posts = new WP_Query( array(
+            $args = array(
                 'post_type' => 'post',
                 'posts_per_page' => $number,
                 'tax_query' => array(
-                    'relation' => 'OR',
-                    array(
-                        'taxonomy' => 'category',
-                        'field' => 'id',
-                        'terms' => $category_ids
-                    ),
-                    array(
-                        'taxonomy' => 'post_tag',
-                        'field' => 'id',
-                        'terms' => $tag_ids
-                    )
+                    'relation' => 'OR'
                 ),
                 'post__not_in' => array( get_the_ID() ),
                 'orderby' => 'rand'
-            ) );
+            );
+
+            // Add get by category
+            if ( false !== $category_ids ) {
+                $args['tax_query'][] = array(
+                    'taxonomy' => 'category',
+                    'field' => 'id',
+                    'terms' => $category_ids
+                );
+            }
+
+            // Add get by tag
+            if ( false !== $tag_ids ) {
+                $args['tax_query'][] = array(
+                    'taxonomy' => 'post_tag',
+                    'field' => 'id',
+                    'terms' => $tag_ids
+                );
+            }
+
+            // If categories and tags are not set, remove the tax_query
+            if ( false === $category_ids && false === $tag_ids )
+                unset( $args['tax_query'] );
+
+            global $screts_related_posts;
+            $screts_related_posts = new WP_Query( $args );
 
             // Start object buffering to capture template output to save to cache
             ob_start();
