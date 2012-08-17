@@ -53,13 +53,18 @@ class scretsRelatedPosts extends WP_Widget {
         if ( ! is_single() )
             return;
 
+        $related_posts_html = $this->generate_related_posts( $instance['number'] );
+
+        if ( false === $related_posts_html )
+            return;
+
         echo $args['before_widget'];
 
         echo $args['before_title'] . $instance['title'] . $args['after_title'];
 
-        $this->generate_related_posts( $instance['number'] );
+		echo $related_posts_html;
 
-        echo $args['after_widget'];
+		echo $args['after_widget'];
     }
 
     /**
@@ -112,38 +117,60 @@ class scretsRelatedPosts extends WP_Widget {
      * @since   0.1
      *
      * @param   int             $number             Number of posts to display in this widget instance.
-     * @return  void
+     * @return  string                              The related posts HTML.
      */
     public function generate_related_posts( $number ) {
-        // Get the post's categories and tags
-        $categories = get_the_category();
-        $category_ids = wp_list_pluck( $categories, 'term_id' );
+        // Generate a cache key for the post
+        $cache_key = 'screts-posts-' . get_the_ID() . $number;
 
-        $tags = get_the_tags();
-        $tag_ids = wp_list_pluck( $tags, 'term_id' );
+        // Attempt to get HTML from cache
+        $related_posts_html = get_transient( $cache_key );
 
-        // Execute related posts query
-        global $screts_related_posts;
-        $screts_related_posts = new WP_Query( array(
-            'post_type' => 'post',
-            'posts_per_page' => $number,
-            'tax_query' => array(
-                'relation' => 'OR',
-                array(
-                    'taxonomy' => 'category',
-                    'field' => 'id',
-                    'terms' => $category_ids
+        // If a cache object was not found, regenerate it now
+        if ( false === $related_posts_html ) {
+            // Get the post's categories and tags
+            $categories = get_the_category();
+            $category_ids = wp_list_pluck( $categories, 'term_id' );
+
+            $tags = get_the_tags();
+            $tag_ids = wp_list_pluck( $tags, 'term_id' );
+
+            // Execute related posts query
+            global $screts_related_posts;
+            $screts_related_posts = new WP_Query( array(
+                'post_type' => 'post',
+                'posts_per_page' => $number,
+                'tax_query' => array(
+                    'relation' => 'OR',
+                    array(
+                        'taxonomy' => 'category',
+                        'field' => 'id',
+                        'terms' => $category_ids
+                    ),
+                    array(
+                        'taxonomy' => 'post_tag',
+                        'field' => 'id',
+                        'terms' => $tag_ids
+                    )
                 ),
-                array(
-                    'taxonomy' => 'post_tag',
-                    'field' => 'id',
-                    'terms' => $tag_ids
-                )
-            ),
-            'post__not_in' => array( get_the_ID() ),
-            'orderby' => 'rand'
-        ) );
+                'post__not_in' => array( get_the_ID() ),
+                'orderby' => 'rand'
+            ) );
 
-        require ( SCRETS_ROOT . '/templates/widget-related-posts.php' );
+            // Start object buffering to capture template output to save to cache
+            ob_start();
+            require ( SCRETS_ROOT . '/templates/widget-related-posts.php' );
+            $related_posts_html = ob_get_contents();
+            ob_end_clean();
+
+            // Cache whatever is returned for 12 hours
+            set_transient( $cache_key, $related_posts_html, 60 * 60 * 12 );
+        }
+
+        // Return the related posts
+        if ( ! empty( $related_posts_html ) )
+            return $related_posts_html;
+        else
+            return false;
     }
 }
