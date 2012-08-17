@@ -1,10 +1,13 @@
 <?php global $screts_related_posts; ?>
-<ul>
-    <?php foreach ( $screts_related_posts as $key => $post ) : ?>
-        <li>
-            <a href="<?php echo get_permalink( $post->ID ); ?>" title="<?php echo $post->post_title; ?>">
-                <?php echo $post->post_title; ?>
-            </a>
-        </li>
-    <?php endforeach; ?>
-</ul>
+<?php if ( $screts_related_posts->have_posts() ) : ?>
+    <ul>
+        <?php while ( $screts_related_posts->have_posts() ) : $screts_related_posts->the_post(); ?>
+            <li>
+                <a href="<?php the_permalink() ?>" title="<?php the_title_attribute(); ?>">
+                    <?php the_title(); ?>
+                </a>
+            </li>
+        <?php endwhile; ?>
+    </ul>
+<?php endif; ?>
+<?php wp_reset_postdata(); ?>

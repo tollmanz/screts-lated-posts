@@ -115,8 +115,6 @@ class scretsRelatedPosts extends WP_Widget {
      * @return  void
      */
     public function generate_related_posts( $number ) {
-        global $post;
-
         // Get the post's categories and tags
         $categories = get_the_category();
         $category_ids = wp_list_pluck( $categories, 'term_id' );
@@ -126,7 +124,7 @@ class scretsRelatedPosts extends WP_Widget {
 
         // Execute related posts query
         global $screts_related_posts;
-        $screts_related_posts = query_posts( array(
+        $screts_related_posts = new WP_Query( array(
             'post_type' => 'post',
             'posts_per_page' => $number,
             'tax_query' => array(
@@ -142,7 +140,7 @@ class scretsRelatedPosts extends WP_Widget {
                     'terms' => $tag_ids
                 )
             ),
-            'post__not_in' => array( $post->ID ),
+            'post__not_in' => array( get_the_ID() ),
             'orderby' => 'rand'
         ) );
 
