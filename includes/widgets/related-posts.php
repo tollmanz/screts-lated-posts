@@ -60,7 +60,7 @@ class scretsRelatedPosts extends WP_Widget {
 
         echo $args['before_widget'];
 
-        echo $args['before_title'] . $instance['title'] . $args['after_title'];
+        echo $args['before_title'] . esc_html( $instance['title'] ) . $args['after_title'];
 
 		echo $related_posts_html;
 
@@ -81,11 +81,11 @@ class scretsRelatedPosts extends WP_Widget {
     ?>
         <p>
             <label for="<?php echo $this->get_field_id('title'); ?>"><?php echo __( 'Title', 'scretslated-posts' ); ?>:</label>
-            <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $title; ?>" />
+            <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" />
         </p>
         <p>
             <label for="<?php echo $this->get_field_id( 'number' ); ?>"><?php echo __( 'Number of items to show', 'scretslated-posts' ); ?>:</label>
-            <input id="<?php echo $this->get_field_id( 'number' ); ?>" name="<?php echo $this->get_field_name( 'number' ); ?>" type="text" value="<?php echo $number; ?>" size="3" />
+            <input id="<?php echo $this->get_field_id( 'number' ); ?>" name="<?php echo $this->get_field_name( 'number' ); ?>" type="text" value="<?php echo absint( $number ); ?>" size="3" />
         </p>
     <?php
     }
@@ -100,8 +100,8 @@ class scretsRelatedPosts extends WP_Widget {
      * @return 	array							    Sanitized field values.
      */
     public function update( $new_instance, $old_instance ) {
-        $title = isset( $new_instance['title'] ) ? $new_instance['title'] : '';
-        $number = isset( $new_instance['number'] ) ? $new_instance['number'] : '';
+        $title = isset( $new_instance['title'] ) ? esc_html( $new_instance['title'] ) : '';
+        $number = isset( $new_instance['number'] ) && $new_instance['number'] > 0 ? absint( $new_instance['number'] ) : '';
 
         return array( 'title' => $title, 'number' => $number );
     }
@@ -120,6 +120,9 @@ class scretsRelatedPosts extends WP_Widget {
      * @return  string                              The related posts HTML.
      */
     public function generate_related_posts( $number ) {
+        // Set the number default if not set
+        $number = empty( $number ) || absint( $number ) > 0 ? 3 : absint( $number );
+
         // Generate a cache key for the post
         $cache_key = 'screts-posts-' . get_the_ID() . $number;
 
